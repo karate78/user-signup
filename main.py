@@ -68,11 +68,9 @@ page_footer = """
 def escaped_html(text):
     return cgi.escape(text)
 
+EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
 def ValidEmail(email):
-    if len(email) > 7:
-        if re.match("^.+@([?)[a-zA-Z0-9-.]+.([a-zA-Z]{2,3}|[0-9]{1,3})(]?)$", email) != None:
-            return True
-    return False
+    return EMAIL_RE.match(email)
 
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
@@ -106,10 +104,10 @@ class Index(webapp2.RequestHandler):
         elif username == "":
             self.write_form("","Must fill out form", "", username, email)
         elif password == "" or verifypassword == "":
-            self.write_form("Must fill out form", "", "", username, email)
-        elif valid_username(username) == True:
+                    self.write_form("Must fill out form", "", "", username, email)
+        elif valid_username(username) == None:
             self.write_form("", "Invalid username", "", username, email)
-        elif ValidEmail == True:
+        elif ValidEmail(email) == None:
             self.write_form("", "", "Must submit a valid email", username, email)
         else:
             self.response.out.write(welcome)
