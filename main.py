@@ -47,6 +47,7 @@ form = """
     <br>
     <label>Password</label>
     <input type='password' name='password'>
+    <span>%(error_p)s</span>
     <br>
     <label>Verify Password</label>
     <input type='password' name='verifypassword'>
@@ -77,10 +78,11 @@ def valid_username(username):
     return USER_RE.match(username)
 
 class Index(webapp2.RequestHandler):
-    def write_form(self, error="", error_u="", error_e="", username="",email=""):
+    def write_form(self, error="", error_u="", error_p="", error_e="", username="",email=""):
         self.response.out.write(page_header + (form % {"error": error,
                                                         "error_u": error_u,
                                                         "error_e": error_e,
+                                                        "error_p": error_p,
                                                         "username": username,
                                                         "email": email})
                                                         + page_footer)
@@ -99,16 +101,24 @@ class Index(webapp2.RequestHandler):
         verifypassword = escaped_html(Verify_password)
         email = escaped_html(E_mail)
         welcome = "<h2>" + "Welcome, " + username + "!</h2>"
-        if Pass_word != Verify_password:
-            self.write_form("Password don't match", "", "", username, email)
+        form_error = "Must fill out this form"
+        if not username and not password and not verifypassword:
+            self.write_form(form_error, form_error,form_error, "", username, email)
+        elif username and not password and not verifypassword:
+            self.write_form(form_error, "", form_error, "", username, email)
+        elif Pass_word != Verify_password:
+            self.write_form("Password don't match", "", "", "", username, email)
         elif username == "":
-            self.write_form("","Must fill out form", "", username, email)
+            self.write_form("",form_error, "", "", username, email)
         elif password == "" or verifypassword == "":
-                    self.write_form("Must fill out form", "", "", username, email)
+            self.write_form(form_error, "", "", "", username, email)
+        elif valid_username(username) == None and ValidEmail(email) == None:
+            self.write_form("", "Invalid username", "" , "Must submit a valid email", username, email)
         elif valid_username(username) == None:
-            self.write_form("", "Invalid username", "", username, email)
-        elif ValidEmail(email) == None:
-            self.write_form("", "", "Must submit a valid email", username, email)
+            self.write_form("", "Invalid username", "", "", username, email)
+        elif email and ValidEmail(email) == None:
+            self.write_form("", "", "" , "Must submit a valid email", username, email)
+
         else:
             self.response.out.write(welcome)
 
